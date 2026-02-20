@@ -1,6 +1,6 @@
 name: segmented_date_picker
 description: "A fully customizable segmented date & time picker for Flutter with inline editing and popup calendar/time panels."
-version: 0.0.1
+version: 0.0.2
 homepage:
 repository: https://github.com/Fasikawkn/segmented_date_picker
 issue_tracker: https://github.com/Fasikawkn/segmented_date_picker/issues
