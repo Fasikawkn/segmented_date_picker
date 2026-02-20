@@ -15,6 +15,20 @@ A fully customizable segmented date & time picker for Flutter. Users edit each s
 - **Responsive dialog** - Switches to vertical layout on narrow screens (< 540 px).
 - **Cross‑platform drag** - Custom `ScrollBehavior` enables drag scrolling on web and desktop.
 
+## Preview
+![Screen Recording 2026-02-20 at 5 13 16 PM (1)](https://github.com/user-attachments/assets/085071a4-370e-4806-8bd9-65d056790ed6)
+
+
+<img width="1048" height="607" alt="image" src="https://github.com/user-attachments/assets/de873731-bccd-4808-ac41-1b17f62990e0" />
+
+<img width="946" height="545" alt="image" src="https://github.com/user-attachments/assets/bc5ed0ae-6120-4cf2-90b5-ca5ea9a231c5" />
+
+<img width="951" height="614" alt="image" src="https://github.com/user-attachments/assets/930f90f8-e1af-4930-bcc0-bc85be5473c2" />
+
+
+
+
+
 ## Getting Started
 
 Add the package to your `pubspec.yaml`:
