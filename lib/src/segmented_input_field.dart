@@ -77,6 +77,11 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
   /// Prevents [didUpdateWidget] from overwriting partially-cleared segments.
   bool _selfEditing = false;
 
+  /// When true, [_onHiddenTextChanged] skips digit/period processing
+  /// because [_handleKeyEvent] already handled the keystroke this frame.
+  /// Cleared automatically at the end of the current frame.
+  bool _suppressHiddenFieldInput = false;
+
   final FocusNode _focusNode = FocusNode();
 
   /// Hidden text controller used to raise the soft keyboard on mobile.
@@ -121,8 +126,11 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
   void didUpdateWidget(covariant SegmentedInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Sync if value changed externally (e.g. from calendar/time panel),
-    // but NOT if we ourselves triggered the change (partial clear).
-    if (widget.value != oldWidget.value && !_selfEditing) {
+    // but NOT if we ourselves triggered the change (partial clear),
+    // and NOT if the user is mid-typing (input buffer has partial digits).
+    if (widget.value != oldWidget.value &&
+        !_selfEditing &&
+        _inputBuffer.isEmpty) {
       _syncFromValue(widget.value);
     }
     _selfEditing = false;
@@ -155,6 +163,13 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     final text = _hiddenTextController.text;
     if (text.isEmpty || _focusedSegment == null) return;
 
+    // If _handleKeyEvent already processed a keystroke this frame,
+    // skip to avoid double-processing the same input.
+    if (_suppressHiddenFieldInput) {
+      _hiddenTextController.clear();
+      return;
+    }
+
     // Process each character the user typed.
     for (final ch in text.characters) {
       if (_focusedSegment == null) break;
@@ -170,6 +185,16 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
 
     // Clear the hidden field so the next keystroke is captured fresh.
     _hiddenTextController.clear();
+  }
+
+  /// Marks the hidden-field input as suppressed for the remainder of
+  /// this frame, so [_onHiddenTextChanged] won't double-process a
+  /// keystroke that [_handleKeyEvent] already handled.
+  void _suppressHiddenFieldThisFrame() {
+    _suppressHiddenFieldInput = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _suppressHiddenFieldInput = false;
+    });
   }
 
   /// Focuses a segment and opens the soft keyboard (mobile).
@@ -346,10 +371,12 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     // A / P for AM/PM toggle.
     if (seg == DateTimeSegment.period) {
       if (key == LogicalKeyboardKey.keyA) {
+        _suppressHiddenFieldThisFrame();
         _setPeriod(false);
         return KeyEventResult.handled;
       }
       if (key == LogicalKeyboardKey.keyP) {
+        _suppressHiddenFieldThisFrame();
         _setPeriod(true);
         return KeyEventResult.handled;
       }
@@ -359,6 +386,7 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     // Digit input.
     final String? digit = _digitFromKey(key);
     if (digit != null) {
+      _suppressHiddenFieldThisFrame();
       _handleDigitInput(seg, digit);
       return KeyEventResult.handled;
     }
