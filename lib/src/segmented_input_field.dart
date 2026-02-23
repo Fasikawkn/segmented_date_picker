@@ -96,8 +96,8 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     if (widget.mode == DateTimePickerMode.date ||
         widget.mode == DateTimePickerMode.dateTime) {
       segs.addAll([
-        DateTimeSegment.month,
         DateTimeSegment.day,
+        DateTimeSegment.month,
         DateTimeSegment.year,
       ]);
     }
@@ -262,7 +262,13 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     final int maxDay = DateUtils.getDaysInMonth(y, m);
     final int clampedDay = d.clamp(1, maxDay);
 
-    return DateTime(y, m, clampedDay, h, min);
+    var result = DateTime(y, m, clampedDay, h, min);
+
+    // Clamp to min/max date range.
+    if (result.isBefore(widget.minDate)) result = widget.minDate;
+    if (result.isAfter(widget.maxDate)) result = widget.maxDate;
+
+    return result;
   }
 
   void _emitChange() {
@@ -656,12 +662,14 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
     // If the user supplied an InputDecoration, use InputDecorator for
     // TextFormField-like borders (outline, underline, filled, etc.).
     if (widget.style.inputDecoration != null) {
-      return SizedBox(
-        height: height,
-        child: InputDecorator(
-          isFocused: _focusNode.hasFocus,
-          decoration: widget.style.inputDecoration!,
-          child: row,
+      return IntrinsicWidth(
+        child: SizedBox(
+          height: height,
+          child: InputDecorator(
+            isFocused: _focusNode.hasFocus,
+            decoration: widget.style.inputDecoration!,
+            child: row,
+          ),
         ),
       );
     }
@@ -735,8 +743,8 @@ class SegmentedInputFieldState extends State<SegmentedInputField> {
   /// Returns the separator string between two adjacent segments, or null.
   String? _separator(DateTimeSegment prev, DateTimeSegment next) {
     // Date separators: /
-    if ((prev == DateTimeSegment.month && next == DateTimeSegment.day) ||
-        (prev == DateTimeSegment.day && next == DateTimeSegment.year)) {
+    if ((prev == DateTimeSegment.day && next == DateTimeSegment.month) ||
+        (prev == DateTimeSegment.month && next == DateTimeSegment.year)) {
       return '/';
     }
     // Time separator: :

@@ -134,8 +134,8 @@ class _DemoPageState extends State<DemoPage> {
             SegmentedDatePicker(
               controller: _dateTimeController,
               mode: DateTimePickerMode.dateTime,
-              minDate: DateTime(2000),
-              maxDate: DateTime(2100),
+              minDate: DateTime.now().subtract(const Duration(days: 10)),
+              maxDate: DateTime.now(),
               use24HourFormat: false,
               firstDayOfWeek: DateTime.sunday,
               showTodayButton: true,
@@ -143,6 +143,14 @@ class _DemoPageState extends State<DemoPage> {
                 accentColor: Colors.teal,
                 segmentHighlightColor: Colors.teal,
                 selectedDayShape: BoxShape.circle,
+                inputDecoration: InputDecoration(
+                  labelText: 'Select date & time',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                ),
+                inputHeight: null
               ),
               onChanged: (value) {
                 setState(() {

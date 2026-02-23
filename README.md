@@ -35,8 +35,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  segmented_date_picker:
-    path: ../segmented_date_picker  # or a pub.dev version once published
+  segmented_date_picker: ^0.0.3
 ```
 
 Then import it:

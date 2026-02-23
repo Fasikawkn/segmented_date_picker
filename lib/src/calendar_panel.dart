@@ -89,20 +89,38 @@ class _CalendarPanelState extends State<CalendarPanel> {
 
   // ── Navigation ────────────────────────────────────────────────────────
 
+  bool get _canGoPrevious {
+    final prevMonth = DateTime(_viewMonth.year, _viewMonth.month - 1);
+    // Can go back if the previous month's last day is >= minDate.
+    final lastDayOfPrev = DateTime(prevMonth.year, prevMonth.month + 1, 0);
+    return !lastDayOfPrev.isBefore(DateTime(widget.minDate.year, widget.minDate.month, widget.minDate.day));
+  }
+
+  bool get _canGoNext {
+    final nextMonth = DateTime(_viewMonth.year, _viewMonth.month + 1);
+    // Can go forward if the first day of next month is <= maxDate.
+    return !nextMonth.isAfter(DateTime(widget.maxDate.year, widget.maxDate.month, widget.maxDate.day));
+  }
+
   void _previousMonth() {
+    if (!_canGoPrevious) return;
     setState(() {
       _viewMonth = DateTime(_viewMonth.year, _viewMonth.month - 1);
     });
   }
 
   void _nextMonth() {
+    if (!_canGoNext) return;
     setState(() {
       _viewMonth = DateTime(_viewMonth.year, _viewMonth.month + 1);
     });
   }
 
   void _goToToday() {
-    final now = DateTime.now();
+    var now = DateTime.now();
+    // Clamp to min/max range.
+    if (now.isBefore(widget.minDate)) now = widget.minDate;
+    if (now.isAfter(widget.maxDate)) now = widget.maxDate;
     setState(() => _viewMonth = DateTime(now.year, now.month));
     widget.onDateSelected(DateTime(now.year, now.month, now.day));
   }
@@ -178,7 +196,7 @@ class _CalendarPanelState extends State<CalendarPanel> {
         // Month navigation: previous.
         IconButton(
           icon: const Icon(Icons.chevron_left, size: 22),
-          onPressed: _previousMonth,
+          onPressed: _canGoPrevious ? _previousMonth : null,
           splashRadius: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -206,7 +224,7 @@ class _CalendarPanelState extends State<CalendarPanel> {
         // Month navigation: next.
         IconButton(
           icon: const Icon(Icons.chevron_right, size: 22),
-          onPressed: _nextMonth,
+          onPressed: _canGoNext ? _nextMonth : null,
           splashRadius: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -251,11 +269,19 @@ class _CalendarPanelState extends State<CalendarPanel> {
         final isSelected = widget.selectedDate != null &&
             _isSameDay(date, widget.selectedDate!);
 
+        // Check if date is outside the allowed range.
+        final dateOnly = DateTime(date.year, date.month, date.day);
+        final minOnly = DateTime(widget.minDate.year, widget.minDate.month, widget.minDate.day);
+        final maxOnly = DateTime(widget.maxDate.year, widget.maxDate.month, widget.maxDate.day);
+        final isDisabled = dateOnly.isBefore(minOnly) || dateOnly.isAfter(maxOnly);
+
         // Decoration for selected day.
         BoxDecoration? decoration;
-        Color textColor = inMonth ? Colors.black87 : Colors.grey.shade400;
+        Color textColor = isDisabled
+            ? Colors.grey.shade300
+            : (inMonth ? Colors.black87 : Colors.grey.shade400);
 
-        if (isSelected) {
+        if (isSelected && !isDisabled) {
           decoration = BoxDecoration(
             color: widget.style.accentColor,
             shape: widget.style.selectedDayShape,
@@ -264,7 +290,7 @@ class _CalendarPanelState extends State<CalendarPanel> {
                 : null,
           );
           textColor = Colors.white;
-        } else if (isToday) {
+        } else if (isToday && !isDisabled) {
           decoration = BoxDecoration(
             border: Border.all(color: widget.style.accentColor, width: 1.5),
             shape: widget.style.selectedDayShape,
@@ -279,14 +305,16 @@ class _CalendarPanelState extends State<CalendarPanel> {
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget
-                    .onDateSelected(DateTime(date.year, date.month, date.day));
-                if (!inMonth) {
-                  setState(
-                      () => _viewMonth = DateTime(date.year, date.month));
-                }
-              },
+              onTap: isDisabled
+                  ? null
+                  : () {
+                      widget.onDateSelected(
+                          DateTime(date.year, date.month, date.day));
+                      if (!inMonth) {
+                        setState(
+                            () => _viewMonth = DateTime(date.year, date.month));
+                      }
+                    },
               child: Container(
                 height: 36,
                 alignment: Alignment.center,
