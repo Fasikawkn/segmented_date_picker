@@ -1,3 +1,13 @@
+## 0.0.4
+
+* **Bug fix:** Enforced `minDate`/`maxDate` constraints in the calendar panel — days outside the allowed range are now greyed out and non-tappable.
+* **Bug fix:** Disabled month navigation arrows when at the min/max boundary to prevent navigating beyond the allowed range.
+* **Bug fix:** Clamped the "Today" button selection to the `minDate`/`maxDate` range.
+* **Bug fix:** Clamped assembled `DateTime` values from segment input to the `minDate`/`maxDate` range.
+* **Bug fix:** Fixed `InputDecoration` mode causing the input field to stretch to full width — now sizes to fit content using `IntrinsicWidth`.
+* **Changed:** Segment order updated from MM/dd/yyyy to dd/MM/yyyy.
+* **Cleanup:** Removed auto-generated boilerplate comments from `pubspec.yaml`, `README.md`, and `example/README.md`.
+
 ## 0.0.3
 
 * **Bug fix:** Fixed desktop input being completely blocked after tapping a segment.
